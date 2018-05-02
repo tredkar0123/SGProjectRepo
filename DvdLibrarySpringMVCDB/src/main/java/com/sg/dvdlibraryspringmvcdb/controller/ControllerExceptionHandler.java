@@ -1,0 +1,80 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.sg.dvdlibraryspringmvcdb.controller;
+
+import com.sg.dvdlibraryspringmvcdb.exceptions.DataIntegrityException;
+import com.sg.dvdlibraryspringmvcdb.exceptions.ErrorMessage;
+import com.sg.dvdlibraryspringmvcdb.exceptions.UpdateIntegrityException;
+import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+/**
+ * Controller to handle exceptions
+ * @author apprentice
+ */
+@ControllerAdvice
+public class ControllerExceptionHandler {
+    
+    /**
+     * method handles any method arguments that are invalid
+     * @param e
+     * @return ErrorMessage object
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseBody
+    public ErrorMessage 
+        processMethodArgumentNotValidException(MethodArgumentNotValidException e)
+    {
+        BindingResult result = e.getBindingResult();
+        List<FieldError> fieldErrors = result.getFieldErrors();
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("Your submission has the following errors");
+
+        for (FieldError currError : fieldErrors)
+        {
+            messageBuilder.append("[");
+            messageBuilder.append(currError.getField());
+            messageBuilder.append(":");
+            messageBuilder.append(currError.getDefaultMessage());
+            messageBuilder.append("] ");
+        }
+
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setMessage(messageBuilder.toString());
+        return errorMessage;
+    }
+
+    /**
+     * method handles the UpdateIntegrityException thrown in the RESTController.
+     * @param e
+     * @return ErrorMessage object
+     */
+    @ExceptionHandler(UpdateIntegrityException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseBody
+    public ErrorMessage processUpdateIntegrityException(UpdateIntegrityException e)
+    {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setMessage(e.getMessage());
+        return errorMessage;
+    }
+    
+    //@ExceptionHandler(DataIntegrityException.class)
+    //public ErrorMessage processDataIntegrityException(DataIntegrityException e)
+    //{
+    //    ErrorMessage errorMessage = new ErrorMessage();
+    //    errorMessage.setMessage(e.getMessage());
+    //    return errorMessage;
+    //}
+}
